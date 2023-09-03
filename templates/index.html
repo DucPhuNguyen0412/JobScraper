@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Job Scraper</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Search for Jobs</h1>
+        <form method="post">
+            <label for="search_term">Search Term:</label>
+            <input type="text" id="search_term" name="search_term"><br>
+
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location"><br>
+
+            <label for="distance">Distance:</label>
+            <input type="text" id="distance" name="distance"><br>
+
+            <label for="job_type">Job Type:</label>
+            <input type="text" id="job_type" name="job_type"><br>
+
+            <label for="results_wanted">Number of Results:</label>
+            <input type="text" id="results_wanted" name="results_wanted"><br>
+
+            <input type="submit" value="Search">
+        </form>
+    </div>
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+
+    {% for table in tables %}
+        {{ table|safe }}
+    {% endfor %}
+
+</body>
+</html>
