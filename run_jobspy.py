@@ -17,7 +17,6 @@ def main():
             pd.set_option('display.max_rows', None)
             pd.set_option('display.width', None)
             pd.set_option('display.max_colwidth', 50)
-            print(jobs)
             jobs.to_csv('jobs.csv', index=False)
 
     except ValidationError as e:
