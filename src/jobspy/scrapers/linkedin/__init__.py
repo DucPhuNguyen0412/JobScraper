@@ -189,7 +189,7 @@ class LinkedInScraper(Scraper):
             return JobType(employment_type)
 
         return text_content, get_job_type(soup)
-
+    
     @staticmethod
     def get_location(metadata_card: Optional[Tag]) -> Location:
         """
@@ -197,6 +197,8 @@ class LinkedInScraper(Scraper):
         :param metadata_card
         :return: location
         """
+        location = Location(city="N/A", state="N/A")  # Initialize to a default value
+
         if metadata_card is not None:
             location_tag = metadata_card.find(
                 "span", class_="job-search-card__location"
