@@ -1,6 +1,6 @@
 ### Credits
 
-This project is based on [JobSpy](https://github.com/original-author/original-project). Modifications were made to add new features and optimizations, including a dynamic UI for real-time input and output.
+This project is based on [JobSpy](https://https://github.com/cullenwatson/JobSpy). Modifications were made to add new features and optimizations, including a dynamic UI for real-time input and output.
 
 ---
 
