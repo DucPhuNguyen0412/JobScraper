@@ -1,7 +1,7 @@
 import math
 import json
 import re
-from datetime import date, datetime
+from datetime import datetime
 from typing import Optional, Tuple, List
 from urllib.parse import urlparse, parse_qs
 

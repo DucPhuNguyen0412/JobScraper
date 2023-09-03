@@ -4,9 +4,9 @@ This project is based on [JobSpy](https://https://github.com/cullenwatson/JobSpy
 
 ---
 
-# JobSpy UI Edition
+# JobScraper
 
-**JobSpy UI Edition** is a comprehensive job scraping library with a dynamic UI for real-time input and output.
+**JobScraper** is a comprehensive job scraping library with a dynamic UI for real-time input and output.
 
 ## Features
 
@@ -19,30 +19,14 @@ This project is based on [JobSpy](https://https://github.com/cullenwatson/JobSpy
 ```bash
 pip install jobscrape
 Python version >= 3.10 required
+```
 
-Usage
-Refer to JobSpy_demo.ipynb for a full demonstration or execute run_jobspy_ui.py for the UI version.
-
-python
-Copy code
-# Example for programmatic usage
-from jobscrape import scrape_jobs
-import pandas as pd
-
-jobs: pd.DataFrame = scrape_jobs(
-    site_name=["indeed", "linkedin", "zip_recruiter"],
-    search_term="software engineer",
-    results_wanted=10
-)
-For details on parameters and response schema, refer to the original JobSpy README.
-
-New Feature: Dynamic UI
+## Feature: Dynamic UI
 Execute run_jobspy_ui.py to open the UI. Provide the required parameters in the input fields and click 'Scrape Jobs' to get real-time output in a dynamically generated table.
 
-Output
-Refer to the original JobSpy README for sample output.
+## Output
 
-FAQ
+## FAQ
 Encountering issues with your queries?
 Try reducing the number of results_wanted and/or broadening the filters. If problems persist, please submit an issue.
 

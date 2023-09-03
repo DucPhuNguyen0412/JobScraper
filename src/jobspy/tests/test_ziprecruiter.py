@@ -1,9 +1,9 @@
-from jobscrape import scrape_jobs
+from jobspy import scrape_jobs
 
 
-def test_indeed():
+def test_ziprecruiter():
     result = scrape_jobs(
-        site_name="indeed",
+        site_name="zip_recruiter",
         search_term="software engineer",
     )
 
