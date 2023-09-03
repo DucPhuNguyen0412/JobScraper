@@ -1,6 +1,8 @@
 # Import necessary modules
 import sys
 sys.path.append('D:\\Job-scraper\\src')
+# import secrets
+# print(secrets.token_hex(16))
 
 from jobspy import scrape_jobs, JobType  # make sure to import JobType as well
 import pandas as pd

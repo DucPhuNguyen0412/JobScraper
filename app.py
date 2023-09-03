@@ -1,14 +1,22 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file, session
 import sys
-sys.path.append('D:\\Job-scraper\\src')
-
-from jobspy import scrape_jobs, JobType  # make sure to import JobType as well
 import pandas as pd
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 app = Flask(__name__)
+app.secret_key = config['DEFAULT']['FLASK_SECRET_KEY']
+
+sys.path.append('D:\\Job-scraper\\src')
+
+from jobspy import scrape_jobs, JobType
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    session.pop('jobs', None)  # Clear session on reload
+    
     if request.method == 'POST':
         search_term = request.form['search_term']
         location = request.form['location']
@@ -27,10 +35,29 @@ def index():
         
         if jobs.empty:
             return render_template('index.html', message="No jobs found.")
+
+        # Make the URLs clickable
+        jobs['job_url'] = jobs['job_url'].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>')
         
-        return render_template('index.html', tables=[jobs.to_html(classes='data')], titles=jobs.columns.values)
+        csv_file = 'jobs.csv'
+        try:
+            old_data = pd.read_csv(csv_file)
+        except FileNotFoundError:
+            old_data = pd.DataFrame()
+
+        all_data = pd.concat([old_data, jobs], ignore_index=True)
+        all_data.to_csv(csv_file, index=False)
+
+        session['jobs'] = jobs.to_dict()  # Store DataFrame in session
+
+        return render_template('index.html', tables=[jobs.to_html(classes='data', escape=False)], titles=jobs.columns.values, download_link=True)
 
     return render_template('index.html')
+
+@app.route('/download')
+def download():
+    csv_file = 'jobs.csv'
+    return send_file(csv_file, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)

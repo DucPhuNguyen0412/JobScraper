@@ -26,13 +26,18 @@
             <input type="submit" value="Search">
         </form>
     </div>
+
     {% if message %}
         <p>{{ message }}</p>
     {% endif %}
 
-    {% for table in tables %}
-        {{ table|safe }}
-    {% endfor %}
+    <div class="results">
+        {% for table in tables %}
+            {{ table|safe }}
+        {% endfor %}
+    </div>
 
+    <!-- Include the JavaScript for clearing the session -->
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>
