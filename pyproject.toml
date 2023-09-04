@@ -5,6 +5,10 @@ description = "Job scraper for LinkedIn, Indeed & ZipRecruiter"
 authors = ["Phu Nguyen <phutom0412panda@gmail.com>"]  # Replace with your email
 readme = "README.md"
 
+packages = [
+    { include = "jobspy", from = "src" }
+]
+
 [tool.poetry.dependencies]
 python = "^3.10"
 requests = "^2.31.0"
