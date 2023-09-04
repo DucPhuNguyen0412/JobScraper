@@ -2,7 +2,6 @@ from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 import configparser
 import sys
-import openai  # Add this if you're going to use GPT-3
 
 # Initialize Config and Flask
 config = configparser.ConfigParser()
@@ -11,12 +10,6 @@ config.read('config.ini')
 app = Flask(__name__)
 app.secret_key = config['DEFAULT']['FLASK_SECRET_KEY']
 app.config['SQLALCHEMY_DATABASE_URI'] = config['DEFAULT']['DB_URL']
-
-# Read GPT-3 API Key from config.ini
-gpt_key = config['DEFAULT']['GPT_KEY']
-
-# Initialize GPT-3 API client
-openai.api_key = gpt_key  # Initialize OpenAI API client with the GPT-3 API key
 
 db = SQLAlchemy(app)
 
@@ -48,15 +41,10 @@ class JobResult(db.Model):
     job_url = db.Column(db.Text)
     description = db.Column(db.Text)
 
-def summarize_with_gpt3(text):
-    prompt = text + "\n tl;dr:"
-    response = openai.Completion.create(
-        engine="text-davinci-002",
-        prompt=prompt,
-        max_tokens=60
-    )
-    summary = response['choices'][0]['text'].strip()
-    return summary
+def truncate_text(text):
+    truncated = text[:300] + ('...' if len(text) > 300 else '')
+    print(f"Truncated Description: {truncated[:50]}...")  # Output first 50 characters to terminal
+    return truncated
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -100,7 +88,7 @@ def index():
 
             for index, row in jobs.iterrows():
                 description = row['description']
-                summarized_description = summarize_with_gpt3(description)  # GPT-3 summarization
+                truncated_description = truncate_text(description)  # Truncate and add '...' if needed
 
                 new_result = JobResult(
                     search_id=new_search.search_id,
@@ -114,8 +102,9 @@ def index():
                     min_amount=row['min_amount'],
                     max_amount=row['max_amount'],
                     job_url=row['job_url'],
-                    description=summarized_description  # Save the summarized description
+                    description=truncated_description  # Save the truncated description
                 )
+                print(f"About to commit truncated description: {truncated_description[:50]}...")
                 db.session.add(new_result)
 
             db.session.commit()
