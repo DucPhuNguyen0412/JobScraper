@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 import configparser
 import sys
+import openai  # Add this if you're going to use GPT-3
 
 # Initialize Config and Flask
 config = configparser.ConfigParser()
@@ -10,6 +11,12 @@ config.read('config.ini')
 app = Flask(__name__)
 app.secret_key = config['DEFAULT']['FLASK_SECRET_KEY']
 app.config['SQLALCHEMY_DATABASE_URI'] = config['DEFAULT']['DB_URL']
+
+# Read GPT-3 API Key from config.ini
+gpt_key = config['DEFAULT']['GPT_KEY']
+
+# Initialize GPT-3 API client
+openai.api_key = gpt_key  # Initialize OpenAI API client with the GPT-3 API key
 
 db = SQLAlchemy(app)
 
@@ -41,12 +48,21 @@ class JobResult(db.Model):
     job_url = db.Column(db.Text)
     description = db.Column(db.Text)
 
+def summarize_with_gpt3(text):
+    prompt = text + "\n tl;dr:"
+    response = openai.Completion.create(
+        engine="text-davinci-002",
+        prompt=prompt,
+        max_tokens=60
+    )
+    summary = response['choices'][0]['text'].strip()
+    return summary
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    jobs = None  # Initialize jobs to None
-    titles = None  # Initialize titles to None
-    no_results = False  # Initialize no_results flag
+    jobs = None
+    titles = None
+    no_results = False
     
     if request.method == 'POST':
         try:
@@ -56,7 +72,6 @@ def index():
             job_type = JobType[request.form['job_type'].upper().replace(' ', '_')] if request.form['job_type'] else None
             results_wanted = int(request.form['results_wanted']) if request.form['results_wanted'] else 10
 
-            # Perform the job search
             jobs = scrape_jobs(
                 site_name=["indeed", "linkedin", "zip_recruiter"],
                 search_term=search_term,
@@ -65,7 +80,7 @@ def index():
                 job_type=job_type,
                 results_wanted=results_wanted
             )
-            
+
             if not jobs.empty:
                 jobs['job_url'] = jobs['job_url'].apply(lambda x: f'<a href="{x}" target="_blank">Link</a>')
 
@@ -73,7 +88,6 @@ def index():
                 no_results = True
                 return render_template('index.html', message="No jobs found.")
             
-            # Save search to DB
             new_search = JobSearch(
                 search_term=search_term,
                 location=location,
@@ -83,9 +97,11 @@ def index():
             )
             db.session.add(new_search)
             db.session.commit()
-            
-            # Save job results to DB
+
             for index, row in jobs.iterrows():
+                description = row['description']
+                summarized_description = summarize_with_gpt3(description)  # GPT-3 summarization
+
                 new_result = JobResult(
                     search_id=new_search.search_id,
                     site=row['site'],
@@ -98,7 +114,7 @@ def index():
                     min_amount=row['min_amount'],
                     max_amount=row['max_amount'],
                     job_url=row['job_url'],
-                    description=row['description']
+                    description=summarized_description  # Save the summarized description
                 )
                 db.session.add(new_result)
 
@@ -111,15 +127,14 @@ def index():
             db.session.rollback()
 
     return render_template(
-        'index.html', 
-        no_results=no_results,  # Pass the flag to the template
-        tables=[jobs.to_html(classes='data', escape=False)] if jobs is not None and not no_results else [],  # Pass an empty list if tables is None
-        titles=titles if jobs is not None and not no_results else None  # Pass the titles only if there are results
+        'index.html',
+        no_results=no_results,
+        tables=[jobs.to_html(classes='data', escape=False)] if jobs is not None and not no_results else [],
+        titles=titles if jobs is not None and not no_results else None
     )
 
 @app.route('/clear_session', methods=['POST'])
 def clear_session():
-    # your code to clear the session
     return 'Session cleared', 200
 
 if __name__ == '__main__':
