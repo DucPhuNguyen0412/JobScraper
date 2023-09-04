@@ -117,6 +117,11 @@ def index():
         titles=titles if jobs is not None and not no_results else None  # Pass the titles only if there are results
     )
 
+@app.route('/clear_session', methods=['POST'])
+def clear_session():
+    # your code to clear the session
+    return 'Session cleared', 200
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
