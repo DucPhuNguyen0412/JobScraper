@@ -44,6 +44,10 @@ class JobResult(db.Model):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    jobs = None  # Initialize jobs to None
+    titles = None  # Initialize titles to None
+    no_results = False  # Initialize no_results flag
+    
     if request.method == 'POST':
         try:
             search_term = request.form['search_term']
@@ -61,12 +65,14 @@ def index():
                 job_type=job_type,
                 results_wanted=results_wanted
             )
+            
+            if not jobs.empty:
+                jobs['job_url'] = jobs['job_url'].apply(lambda x: f'<a href="{x}" target="_blank">Link</a>')
 
             if jobs.empty:
+                no_results = True
                 return render_template('index.html', message="No jobs found.")
             
-            print("About to save job search to DB.")
-
             # Save search to DB
             new_search = JobSearch(
                 search_term=search_term,
@@ -77,10 +83,7 @@ def index():
             )
             db.session.add(new_search)
             db.session.commit()
-            print(f"Job search saved to DB with ID: {new_search.search_id}")
-
-            print("About to save job results to DB.")
-
+            
             # Save job results to DB
             for index, row in jobs.iterrows():
                 new_result = JobResult(
@@ -100,15 +103,19 @@ def index():
                 db.session.add(new_result)
 
             db.session.commit()
-            print("Job results saved to DB.")
 
-            return render_template('index.html', tables=[jobs.to_html(classes='data', escape=False)], titles=jobs.columns.values)
-        
+            titles = jobs.columns.values
+            
         except Exception as e:
             print(f"An error occurred: {e}")
             db.session.rollback()
-    
-    return render_template('index.html')
+
+    return render_template(
+        'index.html', 
+        no_results=no_results,  # Pass the flag to the template
+        tables=[jobs.to_html(classes='data', escape=False)] if jobs is not None and not no_results else [],  # Pass an empty list if tables is None
+        titles=titles if jobs is not None and not no_results else None  # Pass the titles only if there are results
+    )
 
 if __name__ == '__main__':
     with app.app_context():

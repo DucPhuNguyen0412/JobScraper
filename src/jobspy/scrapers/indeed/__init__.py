@@ -4,10 +4,10 @@ import math
 import json
 from datetime import datetime
 from typing import Optional, Tuple, List
-
+from warnings import catch_warnings, simplefilter
 import tls_client
 import urllib.parse
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 from bs4.element import Tag
 from concurrent.futures import ThreadPoolExecutor, Future
 
@@ -89,8 +89,16 @@ class IndeedScraper(Scraper):
             if job_url in self.seen_urls:
                 return None
 
-            snippet_html = BeautifulSoup(job["snippet"], "html.parser")
-
+            with catch_warnings():
+                simplefilter("ignore", MarkupResemblesLocatorWarning)
+                
+                # Ensure job["snippet"] is a string and contains HTML tags (or print it out to check)
+                if job["snippet"] and isinstance(job["snippet"], str):
+                    snippet_html = BeautifulSoup(str(job["snippet"]), "html.parser")
+                else:
+                    print(f"Unexpected job['snippet']: {job['snippet']}")
+                    return None
+                
             extracted_salary = job.get("extractedSalary")
             compensation = None
             if extracted_salary:

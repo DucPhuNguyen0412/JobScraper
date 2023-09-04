@@ -27,7 +27,9 @@
         </form>
     </div>
 
-    {% if message %}
+    {% if no_results %}
+        <p>We cannot find your job's description, please try another search.</p>
+    {% elif message %}
         <p>{{ message }}</p>
     {% endif %}
 
